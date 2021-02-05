@@ -1511,6 +1511,18 @@ export default class MyHandler extends Handler {
                 // if the offer is Invalid_items/disabled_items/over/understocked and accepting overpay enabled, but the offer is not
                 // includes Invalid_value, duped or duped check failed, true for acceptTradeCondition and our side not empty,
                 // accept the trade.
+
+                const summarizeOffer = JSON.stringify(summarize(offer, this.bot, 'summary-accepting', false), null, 4);
+
+                if (summarizeOffer.includes('0 keys, 0 ref (nothing)')) {
+                    log.debug('0-0 bug emerged', {
+                        offer: offer,
+                        items: items,
+                        exchange: exchange,
+                        itemsDict: itemsDict
+                    });
+                }
+
                 offer.log(
                     'trade',
                     `contains ${
@@ -1524,11 +1536,7 @@ export default class MyHandler extends Handler {
                                   isAcceptInvalidItems || isAcceptOverstocked || isAcceptUnderstocked ? '/' : ''
                               }DISABLED_ITEMS`
                             : '')
-                    }, but offer value is greater or equal, accepting. Summary:\n${JSON.stringify(
-                        summarize(offer, this.bot, 'summary-accepting', false),
-                        null,
-                        4
-                    )}`
+                    }, but offer value is greater or equal, accepting. Summary:\n${summarizeOffer}`
                 );
 
                 if (offer.itemsToGive.length + offer.itemsToReceive.length > 50) {
@@ -1643,10 +1651,18 @@ export default class MyHandler extends Handler {
             }
         }
 
-        offer.log(
-            'trade',
-            `accepting. Summary:\n${JSON.stringify(summarize(offer, this.bot, 'summary-accepting', false), null, 4)}`
-        );
+        const summarizeOffer = JSON.stringify(summarize(offer, this.bot, 'summary-accepting', false), null, 4);
+
+        if (summarizeOffer.includes('0 keys, 0 ref (nothing)')) {
+            log.debug('0-0 bug emerged', {
+                offer: offer,
+                items: items,
+                exchange: exchange,
+                itemsDict: itemsDict
+            });
+        }
+
+        offer.log('trade', `accepting. Summary:\n${summarizeOffer}`);
 
         if (offer.itemsToGive.length + offer.itemsToReceive.length > 50) {
             this.bot.sendMessage(
