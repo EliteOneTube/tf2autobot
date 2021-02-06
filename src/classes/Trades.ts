@@ -316,11 +316,7 @@ export default class Trades {
             .catch(err => {
                 log.warn(`Failed to ${action} on the offer #${offer.id}: `, err);
 
-                if (
-                    JSON.stringify(err).includes(
-                        'There was an error accepting this trade offer.  Please try again later. (28)'
-                    )
-                ) {
+                if ((err as CustomError).eresult === 28) {
                     const state = this.bot.manager.pollData.received[offer.id];
 
                     if (state === TradeOfferManager.ETradeOfferState['Accepted']) {
