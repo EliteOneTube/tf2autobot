@@ -321,14 +321,20 @@ export default class Trades {
                         'There was an error accepting this trade offer.  Please try again later. (28)'
                     )
                 ) {
-                    if (this.bot.manager.pollData.received[offer.id] === 3) {
+                    const state = this.bot.manager.pollData.received[offer.id];
+
+                    if (state === TradeOfferManager.ETradeOfferState['Accepted']) {
                         // if got this error and the offer state was changed to 3 (Accepted),
                         // reset to state 2 (Active)
+
+                        log.debug('before: ', state);
 
                         const updatePollData = this.bot.manager.pollData;
                         updatePollData.received[offer.id] = 2;
 
                         this.onPollData(updatePollData);
+
+                        log.debug('after: ', this.bot.manager.pollData.received[offer.id]);
                     }
                 }
             })
