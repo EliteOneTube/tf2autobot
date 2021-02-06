@@ -315,6 +315,22 @@ export default class Trades {
         return actionFunc()
             .catch(err => {
                 log.warn(`Failed to ${action} on the offer #${offer.id}: `, err);
+
+                if (
+                    JSON.stringify(err).includes(
+                        'There was an error accepting this trade offer.  Please try again later. (28)'
+                    )
+                ) {
+                    if (this.bot.manager.pollData.received[offer.id] === 3) {
+                        // if got this error and the offer state was changed to 3 (Accepted),
+                        // reset to state 2 (Active)
+
+                        const updatePollData = this.bot.manager.pollData;
+                        updatePollData.received[offer.id] = 2;
+
+                        this.onPollData(updatePollData);
+                    }
+                }
             })
             .finally(() => {
                 offer.log('debug', 'done doing action on offer', {
