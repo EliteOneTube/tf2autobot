@@ -316,21 +316,24 @@ export default class Trades {
             .catch(err => {
                 log.warn(`Failed to ${action} on the offer #${offer.id}: `, err);
 
-                if ((err as CustomError).eresult === 28) {
-                    const state = this.bot.manager.pollData.received[offer.id];
-
-                    if (state === TradeOfferManager.ETradeOfferState['Accepted']) {
-                        // if got this error and the offer state was changed to 3 (Accepted),
-                        // reset to state 2 (Active)
-
-                        log.debug('before: ', state);
-
-                        const updatePollData = this.bot.manager.pollData;
-                        updatePollData.received[offer.id] = 2;
-
-                        this.onPollData(updatePollData);
-
-                        log.debug('after: ', this.bot.manager.pollData.received[offer.id]);
+                const opt = this.bot.options;
+                if (opt.sendAlert.failedAccept) {
+                    if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                        sendAlert(
+                            'failed-accept',
+                            this.bot,
+                            `Failed to ${action} on the offer #${offer.id}` +
+                                `\n\nYou can try to force accept this trade, send "!faccept ${offer.id}" now.`,
+                            null,
+                            err,
+                            [offer.id]
+                        );
+                    } else {
+                        this.bot.messageAdmins(
+                            `Failed to ${action} on the offer #${offer.id}:\n\n${JSON.stringify(err, null, 4)}` +
+                                `\n\nYou can try to force accept this trade, reply "!faccept ${offer.id}" now.`,
+                            []
+                        );
                     }
                 }
             })
